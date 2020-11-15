@@ -29,10 +29,30 @@
 
 #include "esp_log.h"
 #include "mqtt_client.h"
-#include "driver/gpio.h"
-#include "example.pb-c.h"
+//#include "driver/gpio.h"
+#include "syscallprot.pb-c.h"
+#include<sys/time.h>
+typedef int (*pf)(void *request, void *response);
+int x_gettimeofday(void *request, void *response)
+{
+    return 0;
+}
 
-#define LED_PIN 2
+int x_settimeofday(void *request, void *response)
+{
+    request = (SysRpc__SettimeofdayRequest*)request;
+    response = (SysRpc__SettimeofdayResponse*)response;
+    struct timeval tv;
+    tv.tv_sec = request->timeval_s->tv_sec;
+    tv.tv_usec = request->timeval_s->tv_usec;
+    struct timezone tz;
+    tz.tz_minuteswest = request->timezone_s->tz_minuteswest;
+    tz.tz_dsttime = request->timezone_s->tz_dsttime;
+    int status = settimeofday(&tv, NULL);
+    return status;
+}
+static pf xRPC_func[] = {x_settimeofday, x_gettimeofday};
+//#define LED_PIN 2
 /*static size_t read_buffer(char *out)
 *{
 *    size_t cur_len = 0;
@@ -50,37 +70,30 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
 {
     esp_mqtt_client_handle_t client = event->client;
     int msg_id;
-    /* LED INITIALIZATION SEGMENT*/
-    gpio_reset_pin(LED_PIN); //set GPIO pin as push-pull output
-    gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT); //pin set as output
-
-    FstMsg msg = FST_MSG__INIT;//initialize protobuf structure
-    ProtobufCBinaryData tx;//a ProtobufCBinaryData structure named tx is initialized, to store bytes variable "value" using unsigned char(uint8_t)
-    void *buffer; //BUffer to store serialized data to be transmitted and received serialized data
+    //FstMsg msg = FST_MSG__INIT;//initialize protobuf structure
+    //ProtobufCBinaryData tx;//a ProtobufCBinaryData structure named tx is initialized, to store bytes variable "value" using unsigned char(uint8_t)
+    //void *buffer; //BUffer to store serialized data to be transmitted and received serialized data
     size_t len;  //to store length of serialized data
     //char *msgpass = (char *)(buffer);
+    SysRpc__XRPCMessage toSend = SYS_RPC__X_RPC_MESSAGE__INIT;
+    //SysRpc__XRPCMessageType__GettimeofdayResponse getTimeOfDayResponse = SYS_RPC__X_RPC_MESSAGE_TYPE__GETTIMEOFDAY_RESPONSE__INIT;
+    //SysRpc__XRPCMessageType__GettimeofdayResponse__Timeval getTimeOfDayResponseTimeval = SYS_RPC__X_RPC_MESSAGE_TYPE__GETTIMEOFDAY_RESPONSE__TIMEVAL__INIT;
+    //SysRpc__XRPCMessageType__GettimeofdayResponse__Timezone getTimeOfDayResponseTimezone = SYS_RPC__X_RPC_MESSAGE_TYPE__GETTIMEOFDAY_RESPONSE__TIMEZONE__INIT;
+    //SysRpc__XRPCMessageType__GettimeofdayResponse__GettimeofdayRequestStatus getTimeOfDayRequestStatus = SYS_RPC__X_RPC_MESSAGE_TYPE__GETTIMEOFDAY_RESPONSE__GETTIMEOFDAY_REQUEST_STATUS__INIT;
+    //SysRpc__XRPCMessageType__SettimeofdayRequest setTimeOfDayRequest = SYS_RPC__X_RPC_MESSAGE_TYPE__SETTIMEOFDAY_REQUEST__INIT;
+    //SysRpc__XRPCMessageType__SettimeofdayRequest__Timeval setTimeOfDayRequestTimeval = SYS_RPC__X_RPC_MESSAGE_TYPE__SETTIMEOFDAY_REQUEST__TIMEVAL__INIT;
+    //SysRpc__XRPCMessageType__SettimeofdayRequest__Timezone setTimeOfDayRequestTimezone = SYS_RPC__X_RPC_MESSAGE_TYPE__SETTIMEOFDAY_REQUEST__TIMEZONE__INIT;
+    //SysRpc__XRPCMessageType__SettimeofdayResponse setTimeOfDayResponse = SYS_RPC__X_RPC_MESSAGE_TYPE__SETTIMEOFDAY_RESPONSE__INIT;
+    void *buffer;
     // your_context_t *context = event->context;
     switch (event->event_id) {
         case MQTT_EVENT_CONNECTED:
+        /* This event handler instance handles cases where MQTT connection is established. In our case, we would like to subscribe to the topic device_id/xRPC_Request, where device_id = 101
+        *  for this program. This is used to handle incoming RPCs gettimeofday() and settimeofday() via the topic 101/xRPC_Request.
+        */
             ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-            tx.data = (uint8_t *)"INTERNAL LED STATE";// string is stored array of unsigned chars, planning to include relevant string from stdin in future
-            tx.len = 19; //length of string in tx.data
-            msg.value = tx;
-            msg.data = 0;// integer data
-            len = fst_msg__get_packed_size(&msg);
-            buffer = malloc(len);
-            fst_msg__pack(&msg,buffer);//this is the buffer used to send serialized data
-            msg_id = esp_mqtt_client_publish(client, "/topic/qos1", buffer,len, 1, 0);
-            ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
-
-            msg_id = esp_mqtt_client_subscribe(client, "/topic/qos0", 0);
-            ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-
-            msg_id = esp_mqtt_client_subscribe(client, "/topic/qos1", 1);
-            ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-
-            msg_id = esp_mqtt_client_unsubscribe(client, "/topic/qos1");
-            ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
+            msg_id = esp_mqtt_client_subscribe(client, "101/xRPC_Request", 0);
+            ESP_LOGI(TAG, "Successfully subscribed to msg_id=%d", msg_id);// Use this? The same will also be printed via MQTT_EVENT_SUBSCRIBED.
             break;
         case MQTT_EVENT_DISCONNECTED:
             ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
@@ -88,15 +101,15 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
 
         case MQTT_EVENT_SUBSCRIBED:
             ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
-            tx.data = (uint8_t *)"temperature";// string is stored array of unsigned chars, planning to include relevant string from stdin in future
-            tx.len = 12; //length of string in tx.data
-            msg.value = tx;
-            msg.data = 32;// integer data
-            len = fst_msg__get_packed_size(&msg);
-            buffer = malloc(len);
-            fst_msg__pack(&msg,buffer);//this is the buffer used to send serialized data
-            msg_id = esp_mqtt_client_publish(client, "/topic/qos0", buffer, len, 0, 0);
-            ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+            /*tx.data = (uint8_t *)"temperature";// string is stored array of unsigned chars, planning to include relevant string from stdin in future
+            *tx.len = 12; //length of string in tx.data
+            *msg.value = tx;
+            *msg.data = 32;// integer data
+            *len = fst_msg__get_packed_size(&msg);
+            *buffer = malloc(len);
+            *fst_msg__pack(&msg,buffer);//this is the buffer used to send serialized data. fst_msg__pack() serializes the data and stores it in the buffer.
+            *msg_id = esp_mqtt_client_publish(client, "/topic/qos0", buffer, len, 0, 0);
+            *ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);*/
             break;
         case MQTT_EVENT_UNSUBSCRIBED:
             ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
@@ -104,31 +117,48 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
         case MQTT_EVENT_PUBLISHED:
             ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
             break;
-        case MQTT_EVENT_DATA:
+        case MQTT_EVENT_DATA: //PROCESSES INCOMING PUBLISH REQUEST TO TOPIC SUBSCRIBED CURRENTLY. RN subscribed to 101/xRPC_Request, process accordingly.
             ESP_LOGI(TAG, "MQTT_EVENT_DATA");
             printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
             //Initialize a pointer of type FstMsg to get received message bytes
-            FstMsg *recvd;
-            //len = read_buffer(event->data);
-            len = event->data_len; //Store the length of mesage. Used for deserializing recvd
-            buffer = malloc(len);//Allocate space for serialized message buffer
-            buffer = event->data; //Store the received message in the buffer
-            recvd = fst_msg__unpack(NULL, len, buffer); //Deserialization of received data
-
+            /*FstMsg *recvd;
+            *len = event->data_len; //Store the length of mesage. Used for deserializing recvd
+            *buffer = malloc(len);//Allocate space for serialized message buffer
+            *buffer = event->data; //Store the received message in the buffer
+            *recvd = fst_msg__unpack(NULL, len, buffer); //Deserialization of received data
+            */
             //printf("DATA=%.*s\r\n", event->data_len, event->data);
 
-            tx = recvd->value; //Store the byte array in ProtobufCBinaryData struct tx defined earlier, to access byte array (unsigned char array)
-            printf("%s : %d C \n", tx.data, recvd->data);
-            if(recvd->data == 1)
+            //tx = recvd->value; //Store the byte array in ProtobufCBinaryData struct tx defined earlier, to access byte array (unsigned char array)
+/*            printf("%s : %d C \n", tx.data, recvd->data);
+*            if(recvd->data == 1)
+*            {
+*                gpio_set_level(LED_PIN, 1); //turn on LED  when 1
+*            }
+*            else
+*            {
+*                gpio_set_level(LED_PIN, 0); //turn off led when 0
+*            }*/           
+           //fst_msg__free_unpacked(recvd, NULL);// Free up the space allocated for recvd
+           //Start of RPC HANDLER service below this, the above code is kept fpr reference if any.
+            len = event->data_len;
+            buffer = malloc(len);
+            buffer = event->data;
+            int ret = 0;
+            SysRpc__XRPCMessage *recvd = sys_rpc__x_rpc_message__unpack(NULL, len, buffer);
+            if(recvd->mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday)
             {
-                gpio_set_level(LED_PIN, 1); //turn on LED  when 1
+                toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response;
+                toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday;
+                
             }
-            else
+            if(recvd->mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday)
             {
-                gpio_set_level(LED_PIN, 0); //turn off led when 0
+                toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response;
+                toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday;
+                ret = (*xRPC_func[1])(recvd->settimerequest, recvd->settimeresponse);
+                if(ret == 0)
             }
-            
-            fst_msg__free_unpacked(recvd, NULL);// Free up the space allocated for recvd 
             break;
         case MQTT_EVENT_ERROR:
             ESP_LOGI(TAG, "MQTT_EVENT_ERROR");

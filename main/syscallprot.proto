@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package sys_rpc; 
+
+message xRPC_message_type {
+  enum Type {
+    request = 0;
+    response = 1;
+  }
+  Type type = 1;
+ 
+  enum Procedure {
+    settimeofday = 0;
+    gettimeofday = 1;
+  }
+  Procedure procedure = 2;
+}
+message settimeofdayRequest {
+  message timeval {
+    uint32 tv_sec = 1;
+    uint32 tv_usec = 2;
+  }
+  message timezone {
+    int32 tz_minuteswest = 3;
+    int32 tz_dsttime = 4;
+  }
+  timeval timeval_s= 1;
+  timezone timezone_s = 2;
+}
+ 
+message settimeofdayResponse {
+    sint32 return_value = 1;
+    sint32 errno = 2;
+}
+
+message gettimeofdayRequest {
+    int32 stub = 1;
+}
+
+message gettimeofdayResponse{
+    message timeval {
+    uint32 tv_sec = 1;
+    uint32 tv_usec = 2;
+    }
+  message timezone {
+    int32 tz_minuteswest = 3;
+    int32 tz_dsttime = 4;
+    }
+  message gettimeofdayRequestStatus {
+    sint32 return_value = 1;
+    sint32 errno = 2;
+    }
+    timeval timeval_r = 1;
+    timezone timezone_r = 2;
+    gettimeofdayRequestStatus status = 3;
+}
+message xRPC_message{
+  xRPC_message_type mes_type = 1;
+  settimeofdayRequest setTimeRequest = 2;
+  settimeofdayResponse setTimeResponse = 3;
+  gettimeofdayRequest getTimeRequest = 4;
+  gettimeofdayResponse getTimeResponse = 5;
+}
+
+

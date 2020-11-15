@@ -23,6 +23,7 @@ def on_message(client, userdata, message):
    #time.sleep(1)
    data_inbox = example_pb2.fst_msg()
    inb = bytes(message.payload)
+   print("Raw Data: " ,inb)
    data_inbox.ParseFromString(inb)
    field = data_inbox.value.decode("utf-8")
    now = datetime.datetime.now()
