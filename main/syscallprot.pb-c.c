@@ -154,51 +154,6 @@ void   sys_rpc__settimeofday_response__free_unpacked
   assert(message->base.descriptor == &sys_rpc__settimeofday_response__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   sys_rpc__gettimeofday_request__init
-                     (SysRpc__GettimeofdayRequest         *message)
-{
-  static const SysRpc__GettimeofdayRequest init_value = SYS_RPC__GETTIMEOFDAY_REQUEST__INIT;
-  *message = init_value;
-}
-size_t sys_rpc__gettimeofday_request__get_packed_size
-                     (const SysRpc__GettimeofdayRequest *message)
-{
-  assert(message->base.descriptor == &sys_rpc__gettimeofday_request__descriptor);
-  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
-}
-size_t sys_rpc__gettimeofday_request__pack
-                     (const SysRpc__GettimeofdayRequest *message,
-                      uint8_t       *out)
-{
-  assert(message->base.descriptor == &sys_rpc__gettimeofday_request__descriptor);
-  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
-}
-size_t sys_rpc__gettimeofday_request__pack_to_buffer
-                     (const SysRpc__GettimeofdayRequest *message,
-                      ProtobufCBuffer *buffer)
-{
-  assert(message->base.descriptor == &sys_rpc__gettimeofday_request__descriptor);
-  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
-}
-SysRpc__GettimeofdayRequest *
-       sys_rpc__gettimeofday_request__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data)
-{
-  return (SysRpc__GettimeofdayRequest *)
-     protobuf_c_message_unpack (&sys_rpc__gettimeofday_request__descriptor,
-                                allocator, len, data);
-}
-void   sys_rpc__gettimeofday_request__free_unpacked
-                     (SysRpc__GettimeofdayRequest *message,
-                      ProtobufCAllocator *allocator)
-{
-  if(!message)
-    return;
-  assert(message->base.descriptor == &sys_rpc__gettimeofday_request__descriptor);
-  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
-}
 void   sys_rpc__gettimeofday_response__timeval__init
                      (SysRpc__GettimeofdayResponse__Timeval         *message)
 {
@@ -582,12 +537,12 @@ static const ProtobufCFieldDescriptor sys_rpc__settimeofday_response__field_desc
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "errno",
+    "errno_alt",
     2,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_SINT32,
     0,   /* quantifier_offset */
-    offsetof(SysRpc__SettimeofdayResponse, errno),
+    offsetof(SysRpc__SettimeofdayResponse, errno_alt),
     NULL,
     NULL,
     0,             /* flags */
@@ -595,7 +550,7 @@ static const ProtobufCFieldDescriptor sys_rpc__settimeofday_response__field_desc
   },
 };
 static const unsigned sys_rpc__settimeofday_response__field_indices_by_name[] = {
-  1,   /* field[1] = errno */
+  1,   /* field[1] = errno_alt */
   0,   /* field[0] = return_value */
 };
 static const ProtobufCIntRange sys_rpc__settimeofday_response__number_ranges[1 + 1] =
@@ -616,44 +571,6 @@ const ProtobufCMessageDescriptor sys_rpc__settimeofday_response__descriptor =
   sys_rpc__settimeofday_response__field_indices_by_name,
   1,  sys_rpc__settimeofday_response__number_ranges,
   (ProtobufCMessageInit) sys_rpc__settimeofday_response__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
-static const ProtobufCFieldDescriptor sys_rpc__gettimeofday_request__field_descriptors[1] =
-{
-  {
-    "stub",
-    1,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(SysRpc__GettimeofdayRequest, stub),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-};
-static const unsigned sys_rpc__gettimeofday_request__field_indices_by_name[] = {
-  0,   /* field[0] = stub */
-};
-static const ProtobufCIntRange sys_rpc__gettimeofday_request__number_ranges[1 + 1] =
-{
-  { 1, 0 },
-  { 0, 1 }
-};
-const ProtobufCMessageDescriptor sys_rpc__gettimeofday_request__descriptor =
-{
-  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "sys_rpc.gettimeofdayRequest",
-  "GettimeofdayRequest",
-  "SysRpc__GettimeofdayRequest",
-  "sys_rpc",
-  sizeof(SysRpc__GettimeofdayRequest),
-  1,
-  sys_rpc__gettimeofday_request__field_descriptors,
-  sys_rpc__gettimeofday_request__field_indices_by_name,
-  1,  sys_rpc__gettimeofday_request__number_ranges,
-  (ProtobufCMessageInit) sys_rpc__gettimeofday_request__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const ProtobufCFieldDescriptor sys_rpc__gettimeofday_response__timeval__field_descriptors[2] =
@@ -773,12 +690,12 @@ static const ProtobufCFieldDescriptor sys_rpc__gettimeofday_response__gettimeofd
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "errno",
+    "errno_alt",
     2,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_SINT32,
     0,   /* quantifier_offset */
-    offsetof(SysRpc__GettimeofdayResponse__GettimeofdayRequestStatus, errno),
+    offsetof(SysRpc__GettimeofdayResponse__GettimeofdayRequestStatus, errno_alt),
     NULL,
     NULL,
     0,             /* flags */
@@ -786,7 +703,7 @@ static const ProtobufCFieldDescriptor sys_rpc__gettimeofday_response__gettimeofd
   },
 };
 static const unsigned sys_rpc__gettimeofday_response__gettimeofday_request_status__field_indices_by_name[] = {
-  1,   /* field[1] = errno */
+  1,   /* field[1] = errno_alt */
   0,   /* field[0] = return_value */
 };
 static const ProtobufCIntRange sys_rpc__gettimeofday_response__gettimeofday_request_status__number_ranges[1 + 1] =
@@ -873,7 +790,7 @@ const ProtobufCMessageDescriptor sys_rpc__gettimeofday_response__descriptor =
   (ProtobufCMessageInit) sys_rpc__gettimeofday_response__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor sys_rpc__x_rpc_message__field_descriptors[5] =
+static const ProtobufCFieldDescriptor sys_rpc__x_rpc_message__field_descriptors[4] =
 {
   {
     "mes_type",
@@ -912,20 +829,8 @@ static const ProtobufCFieldDescriptor sys_rpc__x_rpc_message__field_descriptors[
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "getTimeRequest",
-    4,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_MESSAGE,
-    0,   /* quantifier_offset */
-    offsetof(SysRpc__XRPCMessage, gettimerequest),
-    &sys_rpc__gettimeofday_request__descriptor,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
     "getTimeResponse",
-    5,
+    4,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
@@ -937,8 +842,7 @@ static const ProtobufCFieldDescriptor sys_rpc__x_rpc_message__field_descriptors[
   },
 };
 static const unsigned sys_rpc__x_rpc_message__field_indices_by_name[] = {
-  3,   /* field[3] = getTimeRequest */
-  4,   /* field[4] = getTimeResponse */
+  3,   /* field[3] = getTimeResponse */
   0,   /* field[0] = mes_type */
   1,   /* field[1] = setTimeRequest */
   2,   /* field[2] = setTimeResponse */
@@ -946,7 +850,7 @@ static const unsigned sys_rpc__x_rpc_message__field_indices_by_name[] = {
 static const ProtobufCIntRange sys_rpc__x_rpc_message__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 5 }
+  { 0, 4 }
 };
 const ProtobufCMessageDescriptor sys_rpc__x_rpc_message__descriptor =
 {
@@ -956,7 +860,7 @@ const ProtobufCMessageDescriptor sys_rpc__x_rpc_message__descriptor =
   "SysRpc__XRPCMessage",
   "sys_rpc",
   sizeof(SysRpc__XRPCMessage),
-  5,
+  4,
   sys_rpc__x_rpc_message__field_descriptors,
   sys_rpc__x_rpc_message__field_indices_by_name,
   1,  sys_rpc__x_rpc_message__number_ranges,
