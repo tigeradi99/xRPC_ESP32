@@ -75,6 +75,14 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
     //void *buffer; //BUffer to store serialized data to be transmitted and received serialized data
     size_t len;  //to store length of serialized data
     //char *msgpass = (char *)(buffer);
+    /* The below statement initializes a toSend variable of type SysRpc__XRPCMessage; which is a structure that contains submessages as pointer types.
+    *  The submessages:
+    *  mes_type of type SysRpc__XRPCMessageType-> specifies the type of message :CHeck proto file for details
+    *  setTimeRequest of type SysRpc__SettimeofdayRequest-> struct which contains submessages timeval and timezone.
+    *  setTimeResponse of type SysRpc__SettimeofdayResponse-> tells about the status: whether successful or not 
+    *  getTimeRequest of type SysRpc__GettimeofdayRequest-> not clearly specified yet
+    *  getTimeResponse of type SysRpc__GettimeofdayResponse->  stores the time in timeval format (as specified in sys/time.h), yet to implemented
+    */
     SysRpc__XRPCMessage toSend = SYS_RPC__X_RPC_MESSAGE__INIT;
     //SysRpc__XRPCMessageType__GettimeofdayResponse getTimeOfDayResponse = SYS_RPC__X_RPC_MESSAGE_TYPE__GETTIMEOFDAY_RESPONSE__INIT;
     //SysRpc__XRPCMessageType__GettimeofdayResponse__Timeval getTimeOfDayResponseTimeval = SYS_RPC__X_RPC_MESSAGE_TYPE__GETTIMEOFDAY_RESPONSE__TIMEVAL__INIT;
@@ -145,19 +153,18 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
             buffer = malloc(len);
             buffer = event->data;
             int ret = 0;
-            SysRpc__XRPCMessage *recvd = sys_rpc__x_rpc_message__unpack(NULL, len, buffer);
+            SysRpc__XRPCMessage *recvd = sys_rpc__x_rpc_message__unpack(NULL, len, buffer);//unserialize data
             if(recvd->mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday)
             {
-                toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response;
-                toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday;
+                toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
+                toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday;// specify procedure carried out as gettimeofday
                 
             }
             if(recvd->mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday)
             {
-                toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response;
-                toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday;
-                ret = (*xRPC_func[1])(recvd->settimerequest, recvd->settimeresponse);
-                if(ret == 0)
+                toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
+                toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday;// specify procedure carried out as settimeofday
+                ret = (*xRPC_func[1])(recvd->settimerequest, recvd->settimeresponse);// execute x_settimeofday() func as defined above. YET TO BE COMPLETED!!
             }
             break;
         case MQTT_EVENT_ERROR:
