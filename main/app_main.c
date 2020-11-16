@@ -137,7 +137,7 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
             buffer = malloc(len);
             buffer = event->data;
             SysRpc__XRPCMessage *recvd = sys_rpc__x_rpc_message__unpack(NULL, len, buffer);//unserialize data
-            if(recvd->mes_type->base == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->base == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday)
+            if(recvd->mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday)
             {
                 toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
                 toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday;// specify procedure carried out as gettimeofday
