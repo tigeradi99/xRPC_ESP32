@@ -18,11 +18,9 @@ PROTOBUF_C__BEGIN_DECLS
 typedef struct _SysRpc__XRPCMessageType SysRpc__XRPCMessageType;
 typedef struct _SysRpc__SettimeofdayRequest SysRpc__SettimeofdayRequest;
 typedef struct _SysRpc__SettimeofdayRequest__Timeval SysRpc__SettimeofdayRequest__Timeval;
-typedef struct _SysRpc__SettimeofdayRequest__Timezone SysRpc__SettimeofdayRequest__Timezone;
 typedef struct _SysRpc__SettimeofdayResponse SysRpc__SettimeofdayResponse;
 typedef struct _SysRpc__GettimeofdayResponse SysRpc__GettimeofdayResponse;
 typedef struct _SysRpc__GettimeofdayResponse__Timeval SysRpc__GettimeofdayResponse__Timeval;
-typedef struct _SysRpc__GettimeofdayResponse__Timezone SysRpc__GettimeofdayResponse__Timezone;
 typedef struct _SysRpc__GettimeofdayResponse__GettimeofdayRequestStatus SysRpc__GettimeofdayResponse__GettimeofdayRequestStatus;
 typedef struct _SysRpc__XRPCMessage SysRpc__XRPCMessage;
 
@@ -76,32 +74,17 @@ struct  _SysRpc__SettimeofdayRequest__Timeval
     , 0, 0 }
 
 
-/*
- *planning to scrap timezone message, since it is now obsolete. (USAGE OF UTC)
- */
-struct  _SysRpc__SettimeofdayRequest__Timezone
-{
-  ProtobufCMessage base;
-  int32_t tz_minuteswest;
-  int32_t tz_dsttime;
-};
-#define SYS_RPC__SETTIMEOFDAY_REQUEST__TIMEZONE__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&sys_rpc__settimeofday_request__timezone__descriptor) \
-    , 0, 0 }
-
-
 struct  _SysRpc__SettimeofdayRequest
 {
   ProtobufCMessage base;
-  SysRpc__SettimeofdayRequest__Timeval *timeval_s;
   /*
-   *This is obsolete, maybe remove?
+   *planning to scrap timezone message, since it is now obsolete. (USAGE OF UTC)
    */
-  SysRpc__SettimeofdayRequest__Timezone *timezone_s;
+  SysRpc__SettimeofdayRequest__Timeval *timeval_s;
 };
 #define SYS_RPC__SETTIMEOFDAY_REQUEST__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&sys_rpc__settimeofday_request__descriptor) \
-    , NULL, NULL }
+    , NULL }
 
 
 struct  _SysRpc__SettimeofdayResponse
@@ -135,17 +118,6 @@ struct  _SysRpc__GettimeofdayResponse__Timeval
 /*
  *planning to scrap timezone completely, as it is obsolete
  */
-struct  _SysRpc__GettimeofdayResponse__Timezone
-{
-  ProtobufCMessage base;
-  int32_t tz_minuteswest;
-  int32_t tz_dsttime;
-};
-#define SYS_RPC__GETTIMEOFDAY_RESPONSE__TIMEZONE__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&sys_rpc__gettimeofday_response__timezone__descriptor) \
-    , 0, 0 }
-
-
 struct  _SysRpc__GettimeofdayResponse__GettimeofdayRequestStatus
 {
   ProtobufCMessage base;
@@ -167,15 +139,11 @@ struct  _SysRpc__GettimeofdayResponse
 {
   ProtobufCMessage base;
   SysRpc__GettimeofdayResponse__Timeval *timeval_r;
-  /*
-   *Scrap this?
-   */
-  SysRpc__GettimeofdayResponse__Timezone *timezone_r;
   SysRpc__GettimeofdayResponse__GettimeofdayRequestStatus *status;
 };
 #define SYS_RPC__GETTIMEOFDAY_RESPONSE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&sys_rpc__gettimeofday_response__descriptor) \
-    , NULL, NULL, NULL }
+    , NULL, NULL }
 
 
 struct  _SysRpc__XRPCMessage
@@ -216,9 +184,6 @@ void   sys_rpc__x_rpc_message_type__free_unpacked
 /* SysRpc__SettimeofdayRequest__Timeval methods */
 void   sys_rpc__settimeofday_request__timeval__init
                      (SysRpc__SettimeofdayRequest__Timeval         *message);
-/* SysRpc__SettimeofdayRequest__Timezone methods */
-void   sys_rpc__settimeofday_request__timezone__init
-                     (SysRpc__SettimeofdayRequest__Timezone         *message);
 /* SysRpc__SettimeofdayRequest methods */
 void   sys_rpc__settimeofday_request__init
                      (SysRpc__SettimeofdayRequest         *message);
@@ -260,9 +225,6 @@ void   sys_rpc__settimeofday_response__free_unpacked
 /* SysRpc__GettimeofdayResponse__Timeval methods */
 void   sys_rpc__gettimeofday_response__timeval__init
                      (SysRpc__GettimeofdayResponse__Timeval         *message);
-/* SysRpc__GettimeofdayResponse__Timezone methods */
-void   sys_rpc__gettimeofday_response__timezone__init
-                     (SysRpc__GettimeofdayResponse__Timezone         *message);
 /* SysRpc__GettimeofdayResponse__GettimeofdayRequestStatus methods */
 void   sys_rpc__gettimeofday_response__gettimeofday_request_status__init
                      (SysRpc__GettimeofdayResponse__GettimeofdayRequestStatus         *message);
@@ -312,9 +274,6 @@ typedef void (*SysRpc__XRPCMessageType_Closure)
 typedef void (*SysRpc__SettimeofdayRequest__Timeval_Closure)
                  (const SysRpc__SettimeofdayRequest__Timeval *message,
                   void *closure_data);
-typedef void (*SysRpc__SettimeofdayRequest__Timezone_Closure)
-                 (const SysRpc__SettimeofdayRequest__Timezone *message,
-                  void *closure_data);
 typedef void (*SysRpc__SettimeofdayRequest_Closure)
                  (const SysRpc__SettimeofdayRequest *message,
                   void *closure_data);
@@ -323,9 +282,6 @@ typedef void (*SysRpc__SettimeofdayResponse_Closure)
                   void *closure_data);
 typedef void (*SysRpc__GettimeofdayResponse__Timeval_Closure)
                  (const SysRpc__GettimeofdayResponse__Timeval *message,
-                  void *closure_data);
-typedef void (*SysRpc__GettimeofdayResponse__Timezone_Closure)
-                 (const SysRpc__GettimeofdayResponse__Timezone *message,
                   void *closure_data);
 typedef void (*SysRpc__GettimeofdayResponse__GettimeofdayRequestStatus_Closure)
                  (const SysRpc__GettimeofdayResponse__GettimeofdayRequestStatus *message,
@@ -347,11 +303,9 @@ extern const ProtobufCEnumDescriptor    sys_rpc__x_rpc_message_type__type__descr
 extern const ProtobufCEnumDescriptor    sys_rpc__x_rpc_message_type__procedure__descriptor;
 extern const ProtobufCMessageDescriptor sys_rpc__settimeofday_request__descriptor;
 extern const ProtobufCMessageDescriptor sys_rpc__settimeofday_request__timeval__descriptor;
-extern const ProtobufCMessageDescriptor sys_rpc__settimeofday_request__timezone__descriptor;
 extern const ProtobufCMessageDescriptor sys_rpc__settimeofday_response__descriptor;
 extern const ProtobufCMessageDescriptor sys_rpc__gettimeofday_response__descriptor;
 extern const ProtobufCMessageDescriptor sys_rpc__gettimeofday_response__timeval__descriptor;
-extern const ProtobufCMessageDescriptor sys_rpc__gettimeofday_response__timezone__descriptor;
 extern const ProtobufCMessageDescriptor sys_rpc__gettimeofday_response__gettimeofday_request_status__descriptor;
 extern const ProtobufCMessageDescriptor sys_rpc__x_rpc_message__descriptor;
 

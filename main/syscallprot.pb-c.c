@@ -58,12 +58,6 @@ void   sys_rpc__settimeofday_request__timeval__init
   static const SysRpc__SettimeofdayRequest__Timeval init_value = SYS_RPC__SETTIMEOFDAY_REQUEST__TIMEVAL__INIT;
   *message = init_value;
 }
-void   sys_rpc__settimeofday_request__timezone__init
-                     (SysRpc__SettimeofdayRequest__Timezone         *message)
-{
-  static const SysRpc__SettimeofdayRequest__Timezone init_value = SYS_RPC__SETTIMEOFDAY_REQUEST__TIMEZONE__INIT;
-  *message = init_value;
-}
 void   sys_rpc__settimeofday_request__init
                      (SysRpc__SettimeofdayRequest         *message)
 {
@@ -158,12 +152,6 @@ void   sys_rpc__gettimeofday_response__timeval__init
                      (SysRpc__GettimeofdayResponse__Timeval         *message)
 {
   static const SysRpc__GettimeofdayResponse__Timeval init_value = SYS_RPC__GETTIMEOFDAY_RESPONSE__TIMEVAL__INIT;
-  *message = init_value;
-}
-void   sys_rpc__gettimeofday_response__timezone__init
-                     (SysRpc__GettimeofdayResponse__Timezone         *message)
-{
-  static const SysRpc__GettimeofdayResponse__Timezone init_value = SYS_RPC__GETTIMEOFDAY_RESPONSE__TIMEZONE__INIT;
   *message = init_value;
 }
 void   sys_rpc__gettimeofday_response__gettimeofday_request_status__init
@@ -420,58 +408,7 @@ const ProtobufCMessageDescriptor sys_rpc__settimeofday_request__timeval__descrip
   (ProtobufCMessageInit) sys_rpc__settimeofday_request__timeval__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor sys_rpc__settimeofday_request__timezone__field_descriptors[2] =
-{
-  {
-    "tz_minuteswest",
-    3,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(SysRpc__SettimeofdayRequest__Timezone, tz_minuteswest),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "tz_dsttime",
-    4,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(SysRpc__SettimeofdayRequest__Timezone, tz_dsttime),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-};
-static const unsigned sys_rpc__settimeofday_request__timezone__field_indices_by_name[] = {
-  1,   /* field[1] = tz_dsttime */
-  0,   /* field[0] = tz_minuteswest */
-};
-static const ProtobufCIntRange sys_rpc__settimeofday_request__timezone__number_ranges[1 + 1] =
-{
-  { 3, 0 },
-  { 0, 2 }
-};
-const ProtobufCMessageDescriptor sys_rpc__settimeofday_request__timezone__descriptor =
-{
-  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "sys_rpc.settimeofdayRequest.timezone",
-  "Timezone",
-  "SysRpc__SettimeofdayRequest__Timezone",
-  "sys_rpc",
-  sizeof(SysRpc__SettimeofdayRequest__Timezone),
-  2,
-  sys_rpc__settimeofday_request__timezone__field_descriptors,
-  sys_rpc__settimeofday_request__timezone__field_indices_by_name,
-  1,  sys_rpc__settimeofday_request__timezone__number_ranges,
-  (ProtobufCMessageInit) sys_rpc__settimeofday_request__timezone__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
-static const ProtobufCFieldDescriptor sys_rpc__settimeofday_request__field_descriptors[2] =
+static const ProtobufCFieldDescriptor sys_rpc__settimeofday_request__field_descriptors[1] =
 {
   {
     "timeval_s",
@@ -485,27 +422,14 @@ static const ProtobufCFieldDescriptor sys_rpc__settimeofday_request__field_descr
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
-  {
-    "timezone_s",
-    2,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_MESSAGE,
-    0,   /* quantifier_offset */
-    offsetof(SysRpc__SettimeofdayRequest, timezone_s),
-    &sys_rpc__settimeofday_request__timezone__descriptor,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
 };
 static const unsigned sys_rpc__settimeofday_request__field_indices_by_name[] = {
   0,   /* field[0] = timeval_s */
-  1,   /* field[1] = timezone_s */
 };
 static const ProtobufCIntRange sys_rpc__settimeofday_request__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 2 }
+  { 0, 1 }
 };
 const ProtobufCMessageDescriptor sys_rpc__settimeofday_request__descriptor =
 {
@@ -515,7 +439,7 @@ const ProtobufCMessageDescriptor sys_rpc__settimeofday_request__descriptor =
   "SysRpc__SettimeofdayRequest",
   "sys_rpc",
   sizeof(SysRpc__SettimeofdayRequest),
-  2,
+  1,
   sys_rpc__settimeofday_request__field_descriptors,
   sys_rpc__settimeofday_request__field_indices_by_name,
   1,  sys_rpc__settimeofday_request__number_ranges,
@@ -624,57 +548,6 @@ const ProtobufCMessageDescriptor sys_rpc__gettimeofday_response__timeval__descri
   (ProtobufCMessageInit) sys_rpc__gettimeofday_response__timeval__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor sys_rpc__gettimeofday_response__timezone__field_descriptors[2] =
-{
-  {
-    "tz_minuteswest",
-    3,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(SysRpc__GettimeofdayResponse__Timezone, tz_minuteswest),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "tz_dsttime",
-    4,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(SysRpc__GettimeofdayResponse__Timezone, tz_dsttime),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-};
-static const unsigned sys_rpc__gettimeofday_response__timezone__field_indices_by_name[] = {
-  1,   /* field[1] = tz_dsttime */
-  0,   /* field[0] = tz_minuteswest */
-};
-static const ProtobufCIntRange sys_rpc__gettimeofday_response__timezone__number_ranges[1 + 1] =
-{
-  { 3, 0 },
-  { 0, 2 }
-};
-const ProtobufCMessageDescriptor sys_rpc__gettimeofday_response__timezone__descriptor =
-{
-  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "sys_rpc.gettimeofdayResponse.timezone",
-  "Timezone",
-  "SysRpc__GettimeofdayResponse__Timezone",
-  "sys_rpc",
-  sizeof(SysRpc__GettimeofdayResponse__Timezone),
-  2,
-  sys_rpc__gettimeofday_response__timezone__field_descriptors,
-  sys_rpc__gettimeofday_response__timezone__field_indices_by_name,
-  1,  sys_rpc__gettimeofday_response__timezone__number_ranges,
-  (ProtobufCMessageInit) sys_rpc__gettimeofday_response__timezone__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
 static const ProtobufCFieldDescriptor sys_rpc__gettimeofday_response__gettimeofday_request_status__field_descriptors[2] =
 {
   {
@@ -726,7 +599,7 @@ const ProtobufCMessageDescriptor sys_rpc__gettimeofday_response__gettimeofday_re
   (ProtobufCMessageInit) sys_rpc__gettimeofday_response__gettimeofday_request_status__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor sys_rpc__gettimeofday_response__field_descriptors[3] =
+static const ProtobufCFieldDescriptor sys_rpc__gettimeofday_response__field_descriptors[2] =
 {
   {
     "timeval_r",
@@ -741,20 +614,8 @@ static const ProtobufCFieldDescriptor sys_rpc__gettimeofday_response__field_desc
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "timezone_r",
-    2,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_MESSAGE,
-    0,   /* quantifier_offset */
-    offsetof(SysRpc__GettimeofdayResponse, timezone_r),
-    &sys_rpc__gettimeofday_response__timezone__descriptor,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
     "status",
-    3,
+    2,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
@@ -766,14 +627,13 @@ static const ProtobufCFieldDescriptor sys_rpc__gettimeofday_response__field_desc
   },
 };
 static const unsigned sys_rpc__gettimeofday_response__field_indices_by_name[] = {
-  2,   /* field[2] = status */
+  1,   /* field[1] = status */
   0,   /* field[0] = timeval_r */
-  1,   /* field[1] = timezone_r */
 };
 static const ProtobufCIntRange sys_rpc__gettimeofday_response__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 3 }
+  { 0, 2 }
 };
 const ProtobufCMessageDescriptor sys_rpc__gettimeofday_response__descriptor =
 {
@@ -783,7 +643,7 @@ const ProtobufCMessageDescriptor sys_rpc__gettimeofday_response__descriptor =
   "SysRpc__GettimeofdayResponse",
   "sys_rpc",
   sizeof(SysRpc__GettimeofdayResponse),
-  3,
+  2,
   sys_rpc__gettimeofday_response__field_descriptors,
   sys_rpc__gettimeofday_response__field_indices_by_name,
   1,  sys_rpc__gettimeofday_response__number_ranges,

@@ -21,12 +21,7 @@ message settimeofdayRequest {
     uint32 tv_usec = 2; // store time elapse since Jan 1, 1970 00:00 in microseconds
   }
   //planning to scrap timezone message, since it is now obsolete. (USAGE OF UTC)
-  message timezone {
-    int32 tz_minuteswest = 3;
-    int32 tz_dsttime = 4;
-  }
   timeval timeval_s= 1;
-  timezone timezone_s = 2;//This is obsolete, maybe remove?
 }
  
 message settimeofdayResponse {
@@ -44,17 +39,12 @@ message gettimeofdayResponse{
     uint32 tv_usec = 2;
     }
     //planning to scrap timezone completely, as it is obsolete
-  message timezone {
-    int32 tz_minuteswest = 3;
-    int32 tz_dsttime = 4;
-    }
   message gettimeofdayRequestStatus {
     sint32 return_value = 1;//stores if function call was succesful or not
     sint32 errno_alt = 2; //stores error no., if fault occurs
     }
     timeval timeval_r = 1;
-    timezone timezone_r = 2;//Scrap this?
-    gettimeofdayRequestStatus status = 3;
+    gettimeofdayRequestStatus status = 2;
 }
 message xRPC_message{
   xRPC_message_type mes_type = 1;

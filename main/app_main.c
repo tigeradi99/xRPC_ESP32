@@ -39,7 +39,6 @@ int x_gettimeofday(void *request, void *response)
     int status = gettimeofday(&tv,NULL);//retrieve current time from sys/time.h
     ((SysRpc__GettimeofdayResponse*)response)->timeval_r->tv_sec = tv.tv_sec; 
     ((SysRpc__GettimeofdayResponse*)response)->timeval_r->tv_usec = tv.tv_usec;
-    ((SysRpc__GettimeofdayResponse*)response)->timezone_r = NULL; //set timezone to NULL, since its obsolete
     ((SysRpc__GettimeofdayResponse*)response)->status->return_value = status;
     ((SysRpc__GettimeofdayResponse*)response)->status->errno_alt = errno;
     return status;
@@ -50,9 +49,6 @@ int x_settimeofday(void *request, void *response)
     struct timeval tv;
     tv.tv_sec = ((SysRpc__SettimeofdayRequest*)request)->timeval_s->tv_sec;
     tv.tv_usec = ((SysRpc__SettimeofdayRequest*)request)->timeval_s->tv_usec;
-    //struct timezone tz; THIS IS UNUSED FOR NOW, AS TIMEZONE IS OBSOLETE.
-    //tz.tz_minuteswest = request->timezone_s->tz_minuteswest;
-    //tz.tz_dsttime = request->timezone_s->tz_dsttime;
     int status = settimeofday(&tv, NULL);
     ((SysRpc__SettimeofdayResponse*)response)->return_value = status;
     ((SysRpc__SettimeofdayResponse*)response)->errno_alt = errno;
@@ -60,16 +56,16 @@ int x_settimeofday(void *request, void *response)
 }
 static pf xRPC_func[] = {x_settimeofday, x_gettimeofday};
 //#define LED_PIN 2
-/*static size_t read_buffer(char *out)
-*{
-*    size_t cur_len = 0;
-*    while(out[cur_len]!=0)
-*    {
-*        cur_len++;
-*    }
-*    return cur_len;
-*}
-*/
+static size_t read_buffer(char *out)
+{
+    size_t cur_len = 0;
+    while(out[cur_len]!=0)
+    {
+        cur_len++;
+    }
+    return cur_len;
+}
+
 static const char *TAG = "MQTT_EXAMPLE";
 
 
@@ -101,6 +97,7 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
     //SysRpc__XRPCMessageType__SettimeofdayRequest__Timezone setTimeOfDayRequestTimezone = SYS_RPC__X_RPC_MESSAGE_TYPE__SETTIMEOFDAY_REQUEST__TIMEZONE__INIT;
     //SysRpc__XRPCMessageType__SettimeofdayResponse setTimeOfDayResponse = SYS_RPC__X_RPC_MESSAGE_TYPE__SETTIMEOFDAY_RESPONSE__INIT;
     void *buffer;
+    int ret = 0;
     // your_context_t *context = event->context;
     switch (event->event_id) {
         case MQTT_EVENT_CONNECTED:
@@ -117,15 +114,6 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
 
         case MQTT_EVENT_SUBSCRIBED:
             ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
-            /*tx.data = (uint8_t *)"temperature";// string is stored array of unsigned chars, planning to include relevant string from stdin in future
-            *tx.len = 12; //length of string in tx.data
-            *msg.value = tx;
-            *msg.data = 32;// integer data
-            *len = fst_msg__get_packed_size(&msg);
-            *buffer = malloc(len);
-            *fst_msg__pack(&msg,buffer);//this is the buffer used to send serialized data. fst_msg__pack() serializes the data and stores it in the buffer.
-            *msg_id = esp_mqtt_client_publish(client, "/topic/qos0", buffer, len, 0, 0);
-            *ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);*/
             break;
         case MQTT_EVENT_UNSUBSCRIBED:
             ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
@@ -137,32 +125,19 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
             ESP_LOGI(TAG, "MQTT_EVENT_DATA");
             printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
             //Initialize a pointer of type FstMsg to get received message bytes
-            /*FstMsg *recvd;
-            *len = event->data_len; //Store the length of mesage. Used for deserializing recvd
-            *buffer = malloc(len);//Allocate space for serialized message buffer
-            *buffer = event->data; //Store the received message in the buffer
-            *recvd = fst_msg__unpack(NULL, len, buffer); //Deserialization of received data
-            */
+            //FstMsg *recvd;
+            //len = event->data_len; //Store the length of mesage. Used for deserializing recvd
+            //buffer = malloc(len);//Allocate space for serialized message buffer
+            //buffer = event->data; //Store the received message in the buffer
+            //recvd = fst_msg__unpack(NULL, len, buffer); //Deserialization of received data
             //printf("DATA=%.*s\r\n", event->data_len, event->data);
-
-            //tx = recvd->value; //Store the byte array in ProtobufCBinaryData struct tx defined earlier, to access byte array (unsigned char array)
-/*            printf("%s : %d C \n", tx.data, recvd->data);
-*            if(recvd->data == 1)
-*            {
-*                gpio_set_level(LED_PIN, 1); //turn on LED  when 1
-*            }
-*            else
-*            {
-*                gpio_set_level(LED_PIN, 0); //turn off led when 0
-*            }*/           
-           //fst_msg__free_unpacked(recvd, NULL);// Free up the space allocated for recvd
-           //Start of RPC HANDLER service below this, the above code is kept fpr reference if any.
-            len = event->data_len;
+            //Start of RPC HANDLER service below this, the above code is kept fpr reference if any.
+            len = read_buffer(event->data);
+            printf("Size of event: %d \n", len);
             buffer = malloc(len);
             buffer = event->data;
-            int ret = 0;
             SysRpc__XRPCMessage *recvd = sys_rpc__x_rpc_message__unpack(NULL, len, buffer);//unserialize data
-            if(recvd->mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday)
+            if(recvd->mes_type->base == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->base == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday)
             {
                 toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
                 toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday;// specify procedure carried out as gettimeofday
