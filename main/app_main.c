@@ -1,4 +1,4 @@
-/* MQTT (over TCP) Example
+/* MQTT (over TCP) Protocol Buffers Example
 
    This example code is in the Public Domain (or CC0 licensed, at your option.)
 
@@ -33,28 +33,47 @@
 #include "syscallprot.pb-c.h"
 #include<sys/time.h>
 typedef int (*pf)(void *request, void *response);
+SysRpc__SettimeofdayRequest__Timeval *ReqTimeSet; //Pointer set as type SysRpc__SettimeofdayRequest* request to store value of tv_sec and tv_usec and use both to set time.
+SysRpc__GettimeofdayResponse__Timeval *RespTimeSet; //Pointer of type SysRpc__GettimeofdayResponse* response to store value of tv_sec and tv_usec obtained from gettimeofday function
+SysRpc__GettimeofdayResponse__GettimeofdayRequestStatus *getRespStatus; //Pointer of type SysRpc__GettimeofdayResponse* respone to store status variables return_value and errno
 int x_gettimeofday(void *request, void *response)
 {
     struct timeval tv;
+    printf("Passing Parameters to gettimeofday. \n");
     int status = gettimeofday(&tv,NULL);//retrieve current time from sys/time.h
-    ((SysRpc__GettimeofdayResponse*)response)->timeval_r->tv_sec = tv.tv_sec; 
-    ((SysRpc__GettimeofdayResponse*)response)->timeval_r->tv_usec = tv.tv_usec;
-    ((SysRpc__GettimeofdayResponse*)response)->status->return_value = status;
-    ((SysRpc__GettimeofdayResponse*)response)->status->errno_alt = errno;
+    printf("Parameters passed, values obtained from gettimeofday. \n");
+    printf("Storing values to response \n");
+    RespTimeSet = ((SysRpc__GettimeofdayResponse*)response)->timeval_r; 
+    RespTimeSet->tv_sec = tv.tv_sec;
+    RespTimeSet->tv_usec = tv.tv_usec;
+    ((SysRpc__GettimeofdayResponse*)response)->timeval_r = RespTimeSet;
+    getRespStatus = ((SysRpc__GettimeofdayResponse*)response)->status;
+    getRespStatus->return_value = status;
+    getRespStatus->errno_alt = errno;
+    ((SysRpc__GettimeofdayResponse*)response)->status = getRespStatus;
+    printf("Returning value and exiting function. \n");
     return status;
 }
 
 int x_settimeofday(void *request, void *response)
 {
     struct timeval tv;
-    tv.tv_sec = ((SysRpc__SettimeofdayRequest*)request)->timeval_s->tv_sec;
-    tv.tv_usec = ((SysRpc__SettimeofdayRequest*)request)->timeval_s->tv_usec;
-    int status = settimeofday(&tv, NULL);
+    printf("Passing Parameters to timeval struct. \n");
+    ReqTimeSet = ((SysRpc__SettimeofdayRequest*)request)->timeval_s;
+    tv.tv_sec = ReqTimeSet->tv_sec;
+    tv.tv_usec = ReqTimeSet->tv_usec;
+    //printf("tv_sec: %ld.%06ld \n", tv.tv_sec);
+    //printf("tv_usec: %ld.%06ld \n", tv.tv_usec);
+    printf("Passing Parameters to settimeofday. \n");
+    int status = settimeofday(&tv, NULL); //Obtain current time from settimeofday
+    printf("Parameters passed, values obtained from settimeofday. \n");
+    printf("Storing values to response \n");
     ((SysRpc__SettimeofdayResponse*)response)->return_value = status;
     ((SysRpc__SettimeofdayResponse*)response)->errno_alt = errno;
+    printf("Returning value and exiting function. \n");
     return status;
 }
-static pf xRPC_func[] = {x_settimeofday, x_gettimeofday};
+static pf xRPC_func[] = {x_gettimeofday, x_settimeofday};
 //#define LED_PIN 2
 static const char *TAG = "MQTT_EXAMPLE";
 
@@ -121,14 +140,15 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
             SysRpc__XRPCMessage *recvd = sys_rpc__x_rpc_message__unpack(NULL, len, buffer);//unserialize data
             printf("Message unpacked, length of buffer: %d  \n", len);
             printf("Reached check condition \n");
-            //SysRpc__XRPCMessageType messageType = SYS_RPC__X_RPC_MESSAGE_TYPE__INIT;
+            SysRpc__XRPCMessageType messageType = SYS_RPC__X_RPC_MESSAGE_TYPE__INIT;
             //SysRpc__GettimeofdayResponse *getResp;
             if(recvd->mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday)
             {         
                 printf("Reached value storing. \n");   
-                toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
-                toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday;// specify procedure carried out as gettimeofday
-                //toSend.mes_type = &messageType;
+                messageType.type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
+                messageType.procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday;// specify procedure carried out as gettimeofday
+                toSend.mes_type = &messageType;
+                printf("Starting function call: \n");
                 ret = (*xRPC_func[0])(NULL, recvd->gettimeresponse);
                 printf("Return value generated from x_gettimeofday. \n");
                 if(ret == 0)
@@ -150,14 +170,15 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
             if(recvd->mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday)
             {
                 printf("Reached value storing. \n");
-                toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
-                toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday;// specify procedure carried out as settimeofday
-                ret = (*xRPC_func[1])(recvd->settimerequest, recvd->settimeresponse);// execute x_settimeofday() func as defined above. YET TO BE COMPLETED!!
+                messageType.type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
+                messageType.procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday;// specify procedure carried out as settimeofday
+                toSend.mes_type =  &messageType;
+                printf("Starting function call: \n");
+                ret = (*xRPC_func[1])(recvd->settimerequest, recvd->settimeresponse);// execute x_settimeofday() func as defined above.COMPLETED!!
                 printf("Return value generated from x_settimeofday. \n");
                 if(ret == 0)
                 {
-                    toSend.settimeresponse->return_value = recvd->settimeresponse->return_value; //set return value of message to be packed to return_value set in x_settimeofday()
-                    toSend.settimeresponse->errno_alt = 0; //Executed when there are n errors, i.e settimeofday returns 0
+                    toSend.settimeresponse = recvd->settimeresponse; //set return value of message to be packed to return_value set in x_settimeofday()
                     toSend.settimerequest = recvd->settimerequest;
                     toSend.gettimeresponse = recvd->gettimeresponse;
                     printf("All variables set, going to pack. \n");
