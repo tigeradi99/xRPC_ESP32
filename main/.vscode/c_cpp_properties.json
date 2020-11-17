@@ -3,14 +3,15 @@
         {
             "name": "Linux",
             "includePath": [
-                "/home/tig3r/esp/esp-idf/components/"
+                "${env:IDF_PATH}/components/**",
+                "${env:IDF_PATH}/examples/**"
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
             },
             "intelliSenseMode": "gcc-x64",
-            "compilerPath": "/usr/bin/gcc",
+            "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
             "cppStandard": "c++14"
         }

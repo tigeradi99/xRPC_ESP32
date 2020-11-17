@@ -56,16 +56,6 @@ int x_settimeofday(void *request, void *response)
 }
 static pf xRPC_func[] = {x_settimeofday, x_gettimeofday};
 //#define LED_PIN 2
-static size_t read_buffer(char *out)
-{
-    size_t cur_len = 0;
-    while(out[cur_len]!=0)
-    {
-        cur_len++;
-    }
-    return cur_len;
-}
-
 static const char *TAG = "MQTT_EXAMPLE";
 
 
@@ -88,14 +78,6 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
     *  getTimeResponse of type SysRpc__GettimeofdayResponse->  stores the time in timeval format (as specified in sys/time.h), yet to implemented
     */
     SysRpc__XRPCMessage toSend = SYS_RPC__X_RPC_MESSAGE__INIT;
-    //SysRpc__XRPCMessageType__GettimeofdayResponse getTimeOfDayResponse = SYS_RPC__X_RPC_MESSAGE_TYPE__GETTIMEOFDAY_RESPONSE__INIT;
-    //SysRpc__XRPCMessageType__GettimeofdayResponse__Timeval getTimeOfDayResponseTimeval = SYS_RPC__X_RPC_MESSAGE_TYPE__GETTIMEOFDAY_RESPONSE__TIMEVAL__INIT;
-    //SysRpc__XRPCMessageType__GettimeofdayResponse__Timezone getTimeOfDayResponseTimezone = SYS_RPC__X_RPC_MESSAGE_TYPE__GETTIMEOFDAY_RESPONSE__TIMEZONE__INIT;
-    //SysRpc__XRPCMessageType__GettimeofdayResponse__GettimeofdayRequestStatus getTimeOfDayRequestStatus = SYS_RPC__X_RPC_MESSAGE_TYPE__GETTIMEOFDAY_RESPONSE__GETTIMEOFDAY_REQUEST_STATUS__INIT;
-    //SysRpc__XRPCMessageType__SettimeofdayRequest setTimeOfDayRequest = SYS_RPC__X_RPC_MESSAGE_TYPE__SETTIMEOFDAY_REQUEST__INIT;
-    //SysRpc__XRPCMessageType__SettimeofdayRequest__Timeval setTimeOfDayRequestTimeval = SYS_RPC__X_RPC_MESSAGE_TYPE__SETTIMEOFDAY_REQUEST__TIMEVAL__INIT;
-    //SysRpc__XRPCMessageType__SettimeofdayRequest__Timezone setTimeOfDayRequestTimezone = SYS_RPC__X_RPC_MESSAGE_TYPE__SETTIMEOFDAY_REQUEST__TIMEZONE__INIT;
-    //SysRpc__XRPCMessageType__SettimeofdayResponse setTimeOfDayResponse = SYS_RPC__X_RPC_MESSAGE_TYPE__SETTIMEOFDAY_RESPONSE__INIT;
     void *buffer;
     int ret = 0;
     // your_context_t *context = event->context;
@@ -137,23 +119,29 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
             buffer = malloc(len);
             buffer = event->data;
             SysRpc__XRPCMessage *recvd = sys_rpc__x_rpc_message__unpack(NULL, len, buffer);//unserialize data
-            if(recvd->mes_type->type != NULL)
-            {
-                printf("Not a NULL pointer, length of buffer: %d  \n", len);
-            }
+            printf("Message unpacked, length of buffer: %d  \n", len);
+            printf("Reached check condition \n");
+            //SysRpc__XRPCMessageType messageType = SYS_RPC__X_RPC_MESSAGE_TYPE__INIT;
+            //SysRpc__GettimeofdayResponse *getResp;
             if(recvd->mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday)
-            {               
+            {         
+                printf("Reached value storing. \n");   
                 toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
                 toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday;// specify procedure carried out as gettimeofday
+                //toSend.mes_type = &messageType;
                 ret = (*xRPC_func[0])(NULL, recvd->gettimeresponse);
+                printf("Return value generated from x_gettimeofday. \n");
                 if(ret == 0)
                 {
-                    toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //set message type as response
-                    toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday; //set procedure to settimeofday
                     toSend.gettimeresponse = recvd->gettimeresponse; //set return value of message to be packed to return_value set in x_settimeofday()
+                    //toSend.gettimeresponse = getResp;
+                    toSend.settimerequest = recvd->settimerequest;
+                    toSend.settimeresponse = recvd->settimeresponse;
+                    printf("All variables set, going to pack. \n");
                     len2 = sys_rpc__x_rpc_message__get_packed_size(&toSend);
                     buffer = malloc(len2);
                     sys_rpc__x_rpc_message__pack(&toSend, buffer);
+                    printf("Packing complete \n");
                     msg_id = esp_mqtt_client_publish(client, "101/xRPC_Response", buffer, len, 0, 0);
                     ESP_LOGI(TAG, "sent publish response successful, msg_id=%d", msg_id);
                 }
@@ -161,18 +149,22 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
             }
             if(recvd->mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday)
             {
+                printf("Reached value storing. \n");
                 toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
                 toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday;// specify procedure carried out as settimeofday
                 ret = (*xRPC_func[1])(recvd->settimerequest, recvd->settimeresponse);// execute x_settimeofday() func as defined above. YET TO BE COMPLETED!!
+                printf("Return value generated from x_settimeofday. \n");
                 if(ret == 0)
                 {
-                    toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //set message type as response
-                    toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday; //set procedure to settimeofday
                     toSend.settimeresponse->return_value = recvd->settimeresponse->return_value; //set return value of message to be packed to return_value set in x_settimeofday()
                     toSend.settimeresponse->errno_alt = 0; //Executed when there are n errors, i.e settimeofday returns 0
+                    toSend.settimerequest = recvd->settimerequest;
+                    toSend.gettimeresponse = recvd->gettimeresponse;
+                    printf("All variables set, going to pack. \n");
                     len2 = sys_rpc__x_rpc_message__get_packed_size(&toSend);
                     buffer = malloc(len2);
                     sys_rpc__x_rpc_message__pack(&toSend, buffer);
+                    printf("Packing complete \n");
                     msg_id = esp_mqtt_client_publish(client, "101/xRPC_Response", buffer, len, 0, 0);
                     ESP_LOGI(TAG, "sent publish response successful, msg_id=%d", msg_id);
                 }
