@@ -20,21 +20,20 @@ def empty_queue(delay=0):
       time.sleep(delay)
 #define callback
 def on_message(client, userdata, message):
-   #time.sleep(1)
-   data_inbox = syscallprot_pb2.xRPC_message()
-   inb = bytes(message.payload)
-   print("Raw Data: " ,inb)
-   data_inbox.ParseFromString(inb)
-   now = datetime.datetime.now()
-   time_stamp = now.strftime("%m/%d %H:%M:%S")
-   print(time_stamp, "receiving <"+ message.topic, end = '>')
-   print("Message type and procedure: {} {}".format(data_inbox.mes_type.type, data_inbox.mes_type.procedure)
-   if data_inbox.mes_type.procedure == syscallprot_pb2.xRPC_message_type.Procedure.settimeofday: 
-     print("Set time return value and errno: {} {}".format(data_inbox.setTimeResponse.return_value, data_inbox.setTimeResponse.errno_alt)
-   else:
-     print("System time at ESP32 in seconds and microseconds: {} {}".format(data_inbox.getTimeResponse.timeval_r.tv_sec, data_inbox.getTimeResponse.timeval_r.tv_usec)
-     print("getTime response return and errno: {} {}".format(data_inbox.getTimeResponse.status.return_value , ata_inbox.getTimeResponse.status.errno_alt)
-   endif    
+  #time.sleep(1)
+  data_inbox = syscallprot_pb2.xRPC_message()
+  inb = bytes(message.payload)
+  print("Raw Data: " ,inb)
+  data_inbox.ParseFromString(inb)
+  now = datetime.datetime.now()
+  time_stamp = now.strftime("%m/%d %H:%M:%S")
+  print(time_stamp, "receiving <"+ message.topic, end = '>')
+  retval = syscallprot_pb2.gettimeofdayResponse.gettimeofdayRequestStatus()
+  retval.CopyFrom(data_inbox.gettimeofdayResponse.gettimeofdayRequestStatus)
+  #print("Message type and procedure: {} {}".format(data_inbox.mes_type.type, data_inbox.mes_type.procedure)
+  print("Set time return value and errno: {} {}".format(data_inbox.setTimeResponse.return_value, data_inbox.setTimeResponse.errno_alt)
+  #print("System time at ESP32 in seconds:" + data_inbox.getTimeResponse.timeval_r.tv_sec + " microseconds: " + data_inbox.getTimeResponse.timeval_r.tv_usec)
+  #print("getTime response return and errno: {} {}".format(retval.return_value, retval.errno_alt))    
 
 broker="spr.io"
 port=60083

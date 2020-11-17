@@ -132,13 +132,17 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
             //recvd = fst_msg__unpack(NULL, len, buffer); //Deserialization of received data
             //printf("DATA=%.*s\r\n", event->data_len, event->data);
             //Start of RPC HANDLER service below this, the above code is kept fpr reference if any.
-            len = read_buffer(event->data);
+            len = event->data_len;
             printf("Size of event: %d \n", len);
             buffer = malloc(len);
             buffer = event->data;
             SysRpc__XRPCMessage *recvd = sys_rpc__x_rpc_message__unpack(NULL, len, buffer);//unserialize data
-            if(recvd->mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday)
+            if(recvd->mes_type->type != NULL)
             {
+                printf("Not a NULL pointer, length of buffer: %d  \n", len);
+            }
+            if(recvd->mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday)
+            {               
                 toSend.mes_type->type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
                 toSend.mes_type->procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday;// specify procedure carried out as gettimeofday
                 ret = (*xRPC_func[0])(NULL, recvd->gettimeresponse);
