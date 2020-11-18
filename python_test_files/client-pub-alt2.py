@@ -8,8 +8,8 @@ import syscallprot_pb2
 
 # print(sys.version_info)
 
-broker="mqtt.eclipse.org"
-port=1883
+broker="spr.io"
+port=60083
 ts = datetime.datetime.now().isoformat()
 c = 'client-' + ts[-6:] # use the timestamp to create unique MQTT client
 print(c, broker, port)
@@ -29,9 +29,10 @@ elif len(sys.argv) == 3:
     setTimeReq = syscallprot_pb2.settimeofdayRequest()
     if sys.argv[2] == "settimeofday":
         messageType.procedure = syscallprot_pb2.xRPC_message_type.Procedure.settimeofday
-        setTimeReqTimeval.tv_sec = int(round(time.time()))
-        setTimeReqTimeval.tv_usec = 0
-        print("Request to set time sent.")
+        sec , usec = divmod(time.time(),1)
+        setTimeReqTimeval.tv_sec = int(sec)
+        setTimeReqTimeval.tv_usec = int(usec * 1000000)
+        print("Request to set time sent. Timeval: {} {}".format(setTimeReqTimeval.tv_sec, setTimeReqTimeval.tv_usec ))
     if sys.argv[2] == "gettimeofday":
         messageType.procedure = syscallprot_pb2.xRPC_message_type.Procedure.gettimeofday
         setTimeReqTimeval.tv_sec = 0

@@ -23,10 +23,10 @@ def on_message(client, userdata, message):
    now = datetime.datetime.now()
    time_stamp = now.strftime("%m/%d %H:%M:%S")
    print(time_stamp, "receiving <"+ message.topic, end = '>')
-   print("Raw data: ", bytes(message.payload))
+   print("Raw data: ", (message.payload).hex())
 
-broker="mqtt.eclipse.org"
-port=1883
+broker="spr.io"
+port=60083
 ts = datetime.datetime.now().isoformat()
 c = 'client-' + ts[-6:]
 print(c, broker, port)

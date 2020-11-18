@@ -24,16 +24,25 @@ def on_message(client, userdata, message):
   data_inbox = syscallprot_pb2.xRPC_message()
   inb = bytes(message.payload)
   print("Raw Data: " ,inb)
+  print("Parsing message.")
   data_inbox.ParseFromString(inb)
   now = datetime.datetime.now()
   time_stamp = now.strftime("%m/%d %H:%M:%S")
   print(time_stamp, "receiving <"+ message.topic, end = '>')
   retval = syscallprot_pb2.gettimeofdayResponse.gettimeofdayRequestStatus()
-  retval.CopyFrom(data_inbox.gettimeofdayResponse.gettimeofdayRequestStatus)
-  #print("Message type and procedure: {} {}".format(data_inbox.mes_type.type, data_inbox.mes_type.procedure)
-  print("Set time return value and errno: {} {}".format(data_inbox.setTimeResponse.return_value, data_inbox.setTimeResponse.errno_alt)
+  retval.CopyFrom(data_inbox.getTimeResponse.status)
+  if data_inbox.mes_type.procedure == syscallprot_pb2.xRPC_message_type.gettimeofday:
+      print("Message type: gettimeofday")
+      print("Message type and procedure: {} {}".format(data_inbox.mes_type.type, data_inbox.mes_type.procedure))
+      print("System time at ESP32 in seconds and microseconds: {} {}".format(data_inbox.getTimeResponse.timeval_r.tv_sec, data_inbox.getTimeResponse.timeval_r.tv_usec))
+      print("getTime response return and errno: {} {}".format(retval.return_value, retval.errno_alt))
+  else:
+      print("Procedure called: settimeofday()")
+      print("Set time return value and errno: {} {}".format(data_inbox.setTimeResponse.return_value, data_inbox.setTimeResponse.errno_alt))
+      print("System time at ESP32 in seconds and microseconds: {} {}".format(data_inbox.getTimeResponse.timeval_r.tv_sec, data_inbox.getTimeResponse.timeval_r.tv_usec))
   #print("System time at ESP32 in seconds:" + data_inbox.getTimeResponse.timeval_r.tv_sec + " microseconds: " + data_inbox.getTimeResponse.timeval_r.tv_usec)
-  #print("getTime response return and errno: {} {}".format(retval.return_value, retval.errno_alt))    
+  
+      
 
 broker="spr.io"
 port=60083
@@ -45,7 +54,7 @@ client.on_message=on_message
 
 client.connect(broker, port)
 if len(sys.argv) == 1:
-    client.subscribe("#/xRPC_Response") # default: subscribe to all topics in /xRPC_Response
+    client.subscribe("+/xRPC_Response") # default: subscribe to all topics in /xRPC_Response
 else:
     for arg in sys.argv[1:]:
         print("subscribing to ", arg)

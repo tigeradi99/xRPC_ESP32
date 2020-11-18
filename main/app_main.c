@@ -46,12 +46,13 @@ int x_gettimeofday(void *request, void *response)
     RespTimeSet = ((SysRpc__GettimeofdayResponse*)response)->timeval_r; 
     RespTimeSet->tv_sec = tv.tv_sec;
     RespTimeSet->tv_usec = tv.tv_usec;
-    ((SysRpc__GettimeofdayResponse*)response)->timeval_r = RespTimeSet;
+    printf("seconds : %ld\nmicro seconds : %ld \n", tv.tv_sec, tv.tv_usec);
+    //((SysRpc__GettimeofdayResponse*)response)->timeval_r = RespTimeSet;
     getRespStatus = ((SysRpc__GettimeofdayResponse*)response)->status;
     getRespStatus->return_value = status;
     getRespStatus->errno_alt = errno;
-    ((SysRpc__GettimeofdayResponse*)response)->status = getRespStatus;
-    printf("Returning value and exiting function. \n");
+    //((SysRpc__GettimeofdayResponse*)response)->status = getRespStatus;
+    printf("Returning value and exiting function gettimeofday. \n");
     return status;
 }
 
@@ -62,15 +63,15 @@ int x_settimeofday(void *request, void *response)
     ReqTimeSet = ((SysRpc__SettimeofdayRequest*)request)->timeval_s;
     tv.tv_sec = ReqTimeSet->tv_sec;
     tv.tv_usec = ReqTimeSet->tv_usec;
-    //printf("tv_sec: %ld.%06ld \n", tv.tv_sec);
-    //printf("tv_usec: %ld.%06ld \n", tv.tv_usec);
+    printf("tv_sec: %ld \n", tv.tv_sec);
+    printf("tv_usec: %ld \n", tv.tv_usec);
     printf("Passing Parameters to settimeofday. \n");
     int status = settimeofday(&tv, NULL); //Obtain current time from settimeofday
     printf("Parameters passed, values obtained from settimeofday. \n");
     printf("Storing values to response \n");
     ((SysRpc__SettimeofdayResponse*)response)->return_value = status;
     ((SysRpc__SettimeofdayResponse*)response)->errno_alt = errno;
-    printf("Returning value and exiting function. \n");
+    printf("Returning value and exiting function settimeofday. \n");
     return status;
 }
 static pf xRPC_func[] = {x_gettimeofday, x_settimeofday};
@@ -190,7 +191,15 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
                     ESP_LOGI(TAG, "sent publish response successful, msg_id=%d", msg_id);
                 }
             }
-            sys_rpc__x_rpc_message__free_unpacked(recvd, NULL);
+            //The below block will show the currently set time.
+            time_t now;
+            char strftime_buf[64];
+            struct tm timeinfo;
+            time(&now);
+            localtime_r(&now, &timeinfo);
+            strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
+            ESP_LOGI(TAG, "The current date/time is: %s \n", strftime_buf);
+            sys_rpc__x_rpc_message__free_unpacked(recvd, NULL);// Destroy the *recvd pointer after usage and free up memory
             break;
         case MQTT_EVENT_ERROR:
             ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
