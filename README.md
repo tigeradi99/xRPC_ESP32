@@ -12,16 +12,14 @@ It uses ESP-MQTT library which implements mqtt client to connect to mqtt broker,
 
 ### Hardware Required
 
-This example can be executed on any ESP32 board, the only required interface is WiFi and connection to internet. To turn on the LED, use client-pub-alt.py and provide arguments /topic/qos0 INTERNAL_LED_STATE 'VALUE', where VALUE 
-should be 1 to turn on the LED, then 0 to turn it off. The argument INTERNAL_LED_STATE can be modified to your choice, it does not play any role in turning the LED on/off. It's used for output purposes, where adter passing this
-argument, the idf.py monitor should look like:
+This example can be executed on any ESP32 board, the only required interface is WiFi and connection to internet.
+Use client-pub-alt2.py to execute RPCs on the board.
+The currently set device ID is 101, that means publisher has to publish to 101/xRPC_Request to execute RPCs.
+To execute gettimeofday():
+python3 client-pub-alt2.py 101/xRPC_Request gettimeofday
+Similiarly, to execute settimeofday():  (SETS CURRENT TIME IN UTC)
+python3 client-pub-alt2.py 101/xRPC_Request settimeofday
 
-```
-I(5214)
-INTERNAL_LED_STATE 1
-I(5224)
-INTERNAL_LED_STATE 0
-```
 
 ### Configure the project
 
@@ -41,29 +39,87 @@ idf.py -p PORT flash monitor
 
 See the Getting Started Guide for full steps to configure and use ESP-IDF to build projects.
 
-## Example Output
+## Example Output gettimeofday
+Output for gettimeofday()
 
 ```
-I (3714) event: sta ip: 192.168.0.139, mask: 255.255.255.0, gw: 192.168.0.2
-I (3714) system_api: Base MAC address is not set, read default base MAC address from BLK0 of EFUSE
-I (3964) MQTT_CLIENT: Sending MQTT CONNECT message, type: 1, id: 0000
-I (4164) MQTT_EXAMPLE: MQTT_EVENT_CONNECTED
-I (4174) MQTT_EXAMPLE: sent publish successful, msg_id=41464
-I (4174) MQTT_EXAMPLE: sent subscribe successful, msg_id=17886
-I (4174) MQTT_EXAMPLE: sent subscribe successful, msg_id=42970
-I (4184) MQTT_EXAMPLE: sent unsubscribe successful, msg_id=50241
-I (4314) MQTT_EXAMPLE: MQTT_EVENT_PUBLISHED, msg_id=41464
-I (4484) MQTT_EXAMPLE: MQTT_EVENT_SUBSCRIBED, msg_id=17886
-I (4484) MQTT_EXAMPLE: sent publish successful, msg_id=0
-I (4684) MQTT_EXAMPLE: MQTT_EVENT_SUBSCRIBED, msg_id=42970
-I (4684) MQTT_EXAMPLE: sent publish successful, msg_id=0
-I (4884) MQTT_CLIENT: deliver_publish, message_length_read=19, message_length=19
-I (4884) MQTT_EXAMPLE: MQTT_EVENT_DATA
-TOPIC=/topic/qos0
-temperature : 32 C
-I (5194) MQTT_CLIENT: deliver_publish, message_length_read=19, message_length=19
-I (5194) MQTT_EXAMPLE: MQTT_EVENT_DATA
-TOPIC=/topic/qos0
-temperature : 32 C
+I (4667) MQTT_EXAMPLE: Other event id:7
+W (4677) wifi:<ba-add>idx:1 (ifx:0, cc:2d:21:72:42:41), tid:0, ssn:0, winSize:64
+W (5007) wifi:<ba-add>idx:2 (ifx:0, cc:2d:21:72:42:41), tid:1, ssn:0, winSize:64
+I (5317) MQTT_EXAMPLE: MQTT_EVENT_CONNECTED
+I (5317) MQTT_EXAMPLE: Successfully subscribed to msg_id=64959
+I (5617) MQTT_EXAMPLE: MQTT_EVENT_SUBSCRIBED, msg_id=64959
+I (10127) MQTT_EXAMPLE: MQTT_EVENT_DATA
+TOPIC=101/xRPC_Request
+Size of event: 16 
+Message unpacked, length of buffer: 16  
+Reached check condition 
+Reached value storing. 
+toSend.mes_type : 0x0 
+messageType : 0x3ffb0ebc 
+toSend.mes_type : 0x3ffb0ebc 
+Values succesfully set by message type. 
+Starting function call: 
+Passing Parameters to gettimeofday. 
+Parameters passed, values obtained from gettimeofday. 
+Storing values to response 
+seconds : 9
+micro seconds : 745973 
+Returning value and exiting function gettimeofday. 
+Return value generated from x_gettimeofday. 
+Time obtained from gettimeofday: 
+seconds : 9
+micro seconds : 745973 
+gettime response: seconds: 9 | microseconds: 745973| return_value: 0 | errno: 119 
+settimerequest: seconds: 0 | microseconds: 0 
+set time response: return_value: 0 | errno: 0 
+All variables set, going to pack. 
+Length of packed buffer: 27 
+Packing complete 
+I (10197) MQTT_EXAMPLE: sent publish response successful, msg_id=0
+I (10207) MQTT_EXAMPLE: The current date/time is: Thu Jan  1 00:00:09 1970 
+```
+Output at client-pub-alt2.py:
+```
+client-015347 spr.io 60083
+11/19 16:24:58
+Sent request to get time
+```
+## Example Output settimeofday
+Output for settimeofday:
+```
+I (147957) MQTT_EXAMPLE: MQTT_EVENT_DATA
+TOPIC=101/xRPC_Request
+Size of event: 24 
+Message unpacked, length of buffer: 24  
+Reached check condition 
+Reached value storing. 
+toSend.mes_type : 0x3ffb0ebc 
+messageType : 0x3ffb0ebc 
+toSend.mes_type : 0x3ffb0ebc 
+Values succesfully set by message type. 
+Starting function call: 
+Passing Parameters to timeval struct. 
+tv_sec: 1605803236 
+tv_usec: 136679 
+Passing Parameters to settimeofday. 
+Parameters passed, values obtained from settimeofday. 
+Storing values to response 
+Returning value and exiting function settimeofday. 
+Return value generated from x_settimeofday. 
+gettime response: seconds: 1605803236 | microseconds: 152666| return_value: 0 | errno: 119 
+settimerequest: seconds: 1605803236 | microseconds: 136679 
+set time response: return_value: 0 | errno: 119 
+All variables set, going to pack. 
+Length of packed buffer: 42 
+Packing complete 
+I (148027) MQTT_EXAMPLE: sent publish response successful, msg_id=0
+I (148027) MQTT_EXAMPLE: The current date/time is: Thu Nov 19 16:27:16 2020 
+```
+Output of client-pub-alt2.py:
+```
+client-819918 spr.io 60083
+11/19 16:27:16
+Request to set time sent. Timeval: 1605803236 136679
 ```
 

@@ -33,36 +33,75 @@
 #include "syscallprot.pb-c.h"
 #include<sys/time.h>
 typedef int (*pf)(void *request, void *response);
-SysRpc__SettimeofdayRequest__Timeval *ReqTimeSet; //Pointer set as type SysRpc__SettimeofdayRequest* request to store value of tv_sec and tv_usec and use both to set time.
-SysRpc__GettimeofdayResponse__Timeval *RespTimeSet; //Pointer of type SysRpc__GettimeofdayResponse* response to store value of tv_sec and tv_usec obtained from gettimeofday function
-SysRpc__GettimeofdayResponse__GettimeofdayRequestStatus *getRespStatus; //Pointer of type SysRpc__GettimeofdayResponse* respone to store status variables return_value and errno
+/*struct of type SysRpc__SettimeofdayRequest, which stores set time requests coming form the publisher.
+*The struct has the following fields:
+* a struct of type timeval_s, which contains:
+* tv_sec = type int32 to store sceonds elapsed since 1st Jan, 1970 00:00:00 UTC
+* tv_usec = type int32, to store time in microseconds
+*/
+SysRpc__SettimeofdayRequest setTimeRequest = SYS_RPC__SETTIMEOFDAY_REQUEST__INIT;
+/*struct of type SysRpc__SettimeofdayResponse, which stores set time requests coming form the publisher.
+*The struct has the following fields:
+* return_value = stores value returned by settimeofday() function. If it is zero, this indicates that time has been set succesfully, else -1 is returned.
+* errno_alt = stores errno variable, which is set to a specific value whenever error occurs.
+*/
+SysRpc__SettimeofdayResponse setTimeResponse = SYS_RPC__SETTIMEOFDAY_RESPONSE__INIT;
+/*struct of type SysRpc__SettimeofdayRequest, which stores set time requests coming form the publisher.
+*The struct has the following fields:
+* a struct of type timeval_r, which contains:
+* tv_sec = type int32 to store sceonds elapsed since 1st Jan, 1970 00:00:00 UTC
+* tv_usec = type int32, to store time in microseconds
+*
+* a struct of type gettimeofdayRequestStatus, which contains:
+*  return_value = stores value returned by gettimeofday() function. If it is zero, this indicates that time has been set succesfully, else -1 is returned.
+* errno_alt = stores errno variable, which is set to a specific value whenever error occurs.
+*/
+SysRpc__GettimeofdayResponse getTimeResponse = SYS_RPC__GETTIMEOFDAY_RESPONSE__INIT;
+//struct of type SysRpc__SettimeofdayRequest__Timeval to store value of tv_sec and tv_usec and use both to set time.
+SysRpc__SettimeofdayRequest__Timeval ReqTimeSet = SYS_RPC__SETTIMEOFDAY_REQUEST__TIMEVAL__INIT; 
+//struct of type SysRpc__GettimeofdayResponse__Timeval to store value of tv_sec and tv_usec obtained from gettimeofday function
+SysRpc__GettimeofdayResponse__Timeval RespTimeGet = SYS_RPC__GETTIMEOFDAY_RESPONSE__TIMEVAL__INIT; 
+//struct of type SysRpc__GettimeofdayResponse__GettimeofdayRequestStatus to store status variables return_value and errno
+SysRpc__GettimeofdayResponse__GettimeofdayRequestStatus getRespStatus = SYS_RPC__GETTIMEOFDAY_RESPONSE__GETTIMEOFDAY_REQUEST_STATUS__INIT; 
+/* variable of type SysRpc__XRPCMessage; which is a structure that contains submessages as pointer types.
+    *  It is sent to the subscriber with the appropriate values
+    *  The submessages:
+    *  mes_type of type SysRpc__XRPCMessageType-> specifies the type of message :Check proto file for details
+    *  setTimeRequest of type SysRpc__SettimeofdayRequest-> struct which contains submessages timeval.
+    *  setTimeResponse of type SysRpc__SettimeofdayResponse-> tells about the status: whether successful or not 
+    *  getTimeResponse of type SysRpc__GettimeofdayResponse->  stores the time in timeval format (as specified in sys/time.h)
+    */
+SysRpc__XRPCMessage toSend = SYS_RPC__X_RPC_MESSAGE__INIT;
+SysRpc__XRPCMessageType messageType = SYS_RPC__X_RPC_MESSAGE_TYPE__INIT;
+void *buffer; //buffer to store incoming.
+uint8_t *buffer2; //buffer to store response.
+/* Function used to get time and store it into response which us a struct of type SysRpc__GettimeofdayResponse*/
 int x_gettimeofday(void *request, void *response)
 {
     struct timeval tv;
     printf("Passing Parameters to gettimeofday. \n");
     int status = gettimeofday(&tv,NULL);//retrieve current time from sys/time.h
     printf("Parameters passed, values obtained from gettimeofday. \n");
-    printf("Storing values to response \n");
-    RespTimeSet = ((SysRpc__GettimeofdayResponse*)response)->timeval_r; 
-    RespTimeSet->tv_sec = tv.tv_sec;
-    RespTimeSet->tv_usec = tv.tv_usec;
-    printf("seconds : %ld\nmicro seconds : %ld \n", tv.tv_sec, tv.tv_usec);
-    //((SysRpc__GettimeofdayResponse*)response)->timeval_r = RespTimeSet;
-    getRespStatus = ((SysRpc__GettimeofdayResponse*)response)->status;
-    getRespStatus->return_value = status;
-    getRespStatus->errno_alt = errno;
-    //((SysRpc__GettimeofdayResponse*)response)->status = getRespStatus;
+    printf("Storing values to response \n"); 
+    RespTimeGet.tv_sec = tv.tv_sec;
+    RespTimeGet.tv_usec = tv.tv_usec;
+    ((SysRpc__GettimeofdayResponse*)response)->timeval_r = &RespTimeGet;
+    printf("seconds : %d\nmicro seconds : %d \n",RespTimeGet.tv_sec,RespTimeGet.tv_usec);
+    getRespStatus.return_value = status;
+    getRespStatus.errno_alt = errno;
+    ((SysRpc__GettimeofdayResponse*)response)->status = &getRespStatus;
     printf("Returning value and exiting function gettimeofday. \n");
     return status;
 }
-
+/*Function used to set time. It gets the input from request, struct of type SysRpc__SettimeofdayRequest and store response in struct of type
+SysRpc__SettimeofdayResponse */
 int x_settimeofday(void *request, void *response)
 {
     struct timeval tv;
     printf("Passing Parameters to timeval struct. \n");
-    ReqTimeSet = ((SysRpc__SettimeofdayRequest*)request)->timeval_s;
-    tv.tv_sec = ReqTimeSet->tv_sec;
-    tv.tv_usec = ReqTimeSet->tv_usec;
+    ReqTimeSet = *(((SysRpc__SettimeofdayRequest*)request)->timeval_s);
+    tv.tv_sec = ReqTimeSet.tv_sec;
+    tv.tv_usec = ReqTimeSet.tv_usec;
     printf("tv_sec: %ld \n", tv.tv_sec);
     printf("tv_usec: %ld \n", tv.tv_usec);
     printf("Passing Parameters to settimeofday. \n");
@@ -83,23 +122,17 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
 {
     esp_mqtt_client_handle_t client = event->client;
     int msg_id;
-    //FstMsg msg = FST_MSG__INIT;//initialize protobuf structure
-    //ProtobufCBinaryData tx;//a ProtobufCBinaryData structure named tx is initialized, to store bytes variable "value" using unsigned char(uint8_t)
-    //void *buffer; //BUffer to store serialized data to be transmitted and received serialized data
     size_t len;  //to store length of serialized data
     size_t len2;
-    //char *msgpass = (char *)(buffer);
     /* The below statement initializes a toSend variable of type SysRpc__XRPCMessage; which is a structure that contains submessages as pointer types.
     *  The submessages:
-    *  mes_type of type SysRpc__XRPCMessageType-> specifies the type of message :CHeck proto file for details
-    *  setTimeRequest of type SysRpc__SettimeofdayRequest-> struct which contains submessages timeval and timezone.
+    *  mes_type of type SysRpc__XRPCMessageType-> specifies the type of message :Check proto file for details
+    *  setTimeRequest of type SysRpc__SettimeofdayRequest-> struct which contains submessages timeval.
     *  setTimeResponse of type SysRpc__SettimeofdayResponse-> tells about the status: whether successful or not 
-    *  getTimeRequest of type SysRpc__GettimeofdayRequest-> not clearly specified yet-> scrapped for now
-    *  getTimeResponse of type SysRpc__GettimeofdayResponse->  stores the time in timeval format (as specified in sys/time.h), yet to implemented
+    *  getTimeResponse of type SysRpc__GettimeofdayResponse->  stores the time in timeval format (as specified in sys/time.h)
     */
-    SysRpc__XRPCMessage toSend = SYS_RPC__X_RPC_MESSAGE__INIT;
-    void *buffer;
-    int ret = 0;
+    int ret = 0, internal_status=0, internal_errno_alt=0;
+    struct timeval tupdate;
     // your_context_t *context = event->context;
     switch (event->event_id) {
         case MQTT_EVENT_CONNECTED:
@@ -126,14 +159,7 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
         case MQTT_EVENT_DATA: //PROCESSES INCOMING PUBLISH REQUEST TO TOPIC SUBSCRIBED CURRENTLY. RN subscribed to 101/xRPC_Request, process accordingly.
             ESP_LOGI(TAG, "MQTT_EVENT_DATA");
             printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
-            //Initialize a pointer of type FstMsg to get received message bytes
-            //FstMsg *recvd;
-            //len = event->data_len; //Store the length of mesage. Used for deserializing recvd
-            //buffer = malloc(len);//Allocate space for serialized message buffer
-            //buffer = event->data; //Store the received message in the buffer
-            //recvd = fst_msg__unpack(NULL, len, buffer); //Deserialization of received data
-            //printf("DATA=%.*s\r\n", event->data_len, event->data);
-            //Start of RPC HANDLER service below this, the above code is kept fpr reference if any.
+            //Start of RPC HANDLER service below.
             len = event->data_len;
             printf("Size of event: %d \n", len);
             buffer = malloc(len);
@@ -141,29 +167,49 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
             SysRpc__XRPCMessage *recvd = sys_rpc__x_rpc_message__unpack(NULL, len, buffer);//unserialize data
             printf("Message unpacked, length of buffer: %d  \n", len);
             printf("Reached check condition \n");
-            SysRpc__XRPCMessageType messageType = SYS_RPC__X_RPC_MESSAGE_TYPE__INIT;
-            //SysRpc__GettimeofdayResponse *getResp;
             if(recvd->mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__request && recvd->mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday)
             {         
                 printf("Reached value storing. \n");   
                 messageType.type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
                 messageType.procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday;// specify procedure carried out as gettimeofday
-                toSend.mes_type = &messageType;
+                printf("toSend.mes_type : %p \n", toSend.mes_type);
+                printf("messageType : %p \n", &messageType);
+                toSend.mes_type = &(messageType);
+                printf("toSend.mes_type : %p \n", toSend.mes_type);
+                if(toSend.mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response && toSend.mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday)
+                {
+                    printf("Values succesfully set by message type. \n");
+                }
                 printf("Starting function call: \n");
-                ret = (*xRPC_func[0])(NULL, recvd->gettimeresponse);
+                ret = (*xRPC_func[0])(NULL, &getTimeResponse);
                 printf("Return value generated from x_gettimeofday. \n");
                 if(ret == 0)
                 {
-                    toSend.gettimeresponse = recvd->gettimeresponse; //set return value of message to be packed to return_value set in x_settimeofday()
-                    //toSend.gettimeresponse = getResp;
-                    toSend.settimerequest = recvd->settimerequest;
-                    toSend.settimeresponse = recvd->settimeresponse;
+                    toSend.gettimeresponse = &getTimeResponse;//store values gettimeresponse
+                    printf("Time obtained from gettimeofday: \n");
+                    printf("seconds : %d\nmicro seconds : %d \n",toSend.gettimeresponse->timeval_r->tv_sec,toSend.gettimeresponse->timeval_r->tv_usec);
+                    //store values to settimerequest
+                    ReqTimeSet.tv_sec = recvd->settimerequest->timeval_s->tv_sec;
+                    ReqTimeSet.tv_usec = recvd->settimerequest->timeval_s->tv_usec;
+                    setTimeRequest.timeval_s = &ReqTimeSet;
+                    toSend.settimerequest = &setTimeRequest;
+                    //store values to settimeresponse
+                    setTimeResponse.return_value = recvd->settimeresponse->return_value;
+                    setTimeResponse.errno_alt = recvd->settimeresponse->errno_alt;
+                    toSend.settimeresponse = &setTimeResponse;
+                    //Value check; to check if they are correctly stored
+                    printf("gettime response: seconds: %d | microseconds: %d| return_value: %d | errno: %d \n", 
+                    toSend.gettimeresponse->timeval_r->tv_sec, toSend.gettimeresponse->timeval_r->tv_usec, toSend.gettimeresponse->status->return_value,
+                    toSend.gettimeresponse->status->errno_alt);
+                    printf("settimerequest: seconds: %d | microseconds: %d \n", toSend.settimerequest->timeval_s->tv_sec, toSend.settimerequest->timeval_s->tv_usec);
+                    printf("set time response: return_value: %d | errno: %d \n", toSend.settimeresponse->return_value, toSend.settimeresponse->errno_alt);
                     printf("All variables set, going to pack. \n");
                     len2 = sys_rpc__x_rpc_message__get_packed_size(&toSend);
-                    buffer = malloc(len2);
-                    sys_rpc__x_rpc_message__pack(&toSend, buffer);
+                    printf("Length of packed buffer: %d \n", len2);
+                    buffer2 = malloc(len2);
+                    sys_rpc__x_rpc_message__pack(&toSend, buffer2);
                     printf("Packing complete \n");
-                    msg_id = esp_mqtt_client_publish(client, "101/xRPC_Response", buffer, len, 0, 0);
+                    msg_id = esp_mqtt_client_publish(client, "101/xRPC_Response", ((char*)buffer2) , len, 0, 0);
                     ESP_LOGI(TAG, "sent publish response successful, msg_id=%d", msg_id);
                 }
                 
@@ -173,21 +219,50 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
                 printf("Reached value storing. \n");
                 messageType.type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
                 messageType.procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday;// specify procedure carried out as settimeofday
-                toSend.mes_type =  &messageType;
+                printf("toSend.mes_type : %p \n", toSend.mes_type);
+                printf("messageType : %p \n", &messageType);
+                toSend.mes_type =  &(messageType);
+                printf("toSend.mes_type : %p \n", toSend.mes_type);
+                if(toSend.mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response && toSend.mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday)
+                {
+                    printf("Values succesfully set by message type. \n");
+                }
                 printf("Starting function call: \n");
-                ret = (*xRPC_func[1])(recvd->settimerequest, recvd->settimeresponse);// execute x_settimeofday() func as defined above.COMPLETED!!
+                ret = (*xRPC_func[1])(recvd->settimerequest, &setTimeResponse);// execute x_settimeofday() func as defined above.COMPLETED!!
                 printf("Return value generated from x_settimeofday. \n");
+                //Get time from gettimeofday()
+                internal_status = gettimeofday(&tupdate, NULL);
+                internal_errno_alt = errno;
                 if(ret == 0)
                 {
-                    toSend.settimeresponse = recvd->settimeresponse; //set return value of message to be packed to return_value set in x_settimeofday()
-                    toSend.settimerequest = recvd->settimerequest;
-                    toSend.gettimeresponse = recvd->gettimeresponse;
+                    toSend.settimeresponse = &setTimeResponse; //store values to settimeresponse
+
+                    //store values to settimerequest
+                    ReqTimeSet.tv_sec = recvd->settimerequest->timeval_s->tv_sec;
+                    ReqTimeSet.tv_usec = recvd->settimerequest->timeval_s->tv_usec;
+                    setTimeRequest.timeval_s = &ReqTimeSet;
+                    toSend.settimerequest = &setTimeRequest;
+                    //store values to gettimeresponse
+                    RespTimeGet.tv_sec = tupdate.tv_sec; //get time from gettimeofday(), update both tv_sec and tv_usec
+                    RespTimeGet.tv_usec = tupdate.tv_usec;
+                    getTimeResponse.timeval_r = &RespTimeGet;
+                    getRespStatus.return_value = internal_status;
+                    getRespStatus.errno_alt = internal_errno_alt;
+                    getTimeResponse.status = &getRespStatus;
+                    toSend.gettimeresponse = &getTimeResponse;
+                    //Value check; to check if they are correctly stored
+                    printf("gettime response: seconds: %d | microseconds: %d| return_value: %d | errno: %d \n", 
+                    toSend.gettimeresponse->timeval_r->tv_sec, toSend.gettimeresponse->timeval_r->tv_usec, toSend.gettimeresponse->status->return_value,
+                    toSend.gettimeresponse->status->errno_alt);
+                    printf("settimerequest: seconds: %d | microseconds: %d \n", toSend.settimerequest->timeval_s->tv_sec, toSend.settimerequest->timeval_s->tv_usec);
+                    printf("set time response: return_value: %d | errno: %d \n", toSend.settimeresponse->return_value, toSend.settimeresponse->errno_alt);
                     printf("All variables set, going to pack. \n");
                     len2 = sys_rpc__x_rpc_message__get_packed_size(&toSend);
-                    buffer = malloc(len2);
-                    sys_rpc__x_rpc_message__pack(&toSend, buffer);
+                    buffer2 = malloc(len2);
+                    printf("Length of packed buffer: %d \n", len2);
+                    sys_rpc__x_rpc_message__pack(&toSend, buffer2);
                     printf("Packing complete \n");
-                    msg_id = esp_mqtt_client_publish(client, "101/xRPC_Response", buffer, len, 0, 0);
+                    msg_id = esp_mqtt_client_publish(client, "101/xRPC_Response", ((char*)buffer2), len, 0, 0);
                     ESP_LOGI(TAG, "sent publish response successful, msg_id=%d", msg_id);
                 }
             }
