@@ -172,10 +172,8 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
                 printf("Reached value storing. \n");   
                 messageType.type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
                 messageType.procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday;// specify procedure carried out as gettimeofday
-                printf("toSend.mes_type : %p \n", toSend.mes_type);
-                printf("messageType : %p \n", &messageType);
+                printf("toSend.mes_type set to gettimeofday(). :\n");
                 toSend.mes_type = &(messageType);
-                printf("toSend.mes_type : %p \n", toSend.mes_type);
                 if(toSend.mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response && toSend.mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__gettimeofday)
                 {
                     printf("Values succesfully set by message type. \n");
@@ -209,7 +207,7 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
                     buffer2 = malloc(len2);
                     sys_rpc__x_rpc_message__pack(&toSend, buffer2);
                     printf("Packing complete \n");
-                    msg_id = esp_mqtt_client_publish(client, "101/xRPC_Response", ((char*)buffer2) , len, 0, 0);
+                    msg_id = esp_mqtt_client_publish(client, "101/xRPC_Response", ((char*)buffer2) , len2, 0, 0);
                     ESP_LOGI(TAG, "sent publish response successful, msg_id=%d", msg_id);
                 }
                 
@@ -219,10 +217,8 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
                 printf("Reached value storing. \n");
                 messageType.type = SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response; //specify message type as response
                 messageType.procedure = SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday;// specify procedure carried out as settimeofday
-                printf("toSend.mes_type : %p \n", toSend.mes_type);
-                printf("messageType : %p \n", &messageType);
+                printf("toSend.mes_type set to settimeofday.\n");
                 toSend.mes_type =  &(messageType);
-                printf("toSend.mes_type : %p \n", toSend.mes_type);
                 if(toSend.mes_type->type == SYS_RPC__X_RPC_MESSAGE_TYPE__TYPE__response && toSend.mes_type->procedure == SYS_RPC__X_RPC_MESSAGE_TYPE__PROCEDURE__settimeofday)
                 {
                     printf("Values succesfully set by message type. \n");
@@ -262,7 +258,7 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
                     printf("Length of packed buffer: %d \n", len2);
                     sys_rpc__x_rpc_message__pack(&toSend, buffer2);
                     printf("Packing complete \n");
-                    msg_id = esp_mqtt_client_publish(client, "101/xRPC_Response", ((char*)buffer2), len, 0, 0);
+                    msg_id = esp_mqtt_client_publish(client, "101/xRPC_Response", ((char*)buffer2), len2, 0, 0);
                     ESP_LOGI(TAG, "sent publish response successful, msg_id=%d", msg_id);
                 }
             }
